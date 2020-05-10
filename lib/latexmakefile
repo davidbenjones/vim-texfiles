@@ -1,0 +1,36 @@
+TEX=xelatex -interaction=nonstopmode -halt-on-error
+BIBTEX=bibtex
+
+SOURCE=$(wildcard *.tex)
+TARGET=$(SOURCE:.tex=.pdf)
+
+.PHONY : all clean
+
+all : $(TARGET)
+
+# Note: To force a file to make, use -B
+
+# IF STATEMENT:
+#	1. Check to see if the .aux file contains any BibTeX commands
+#	2. If the .aux file doesn't contain BibTeX commands AND
+#		it exists, then run TEX one more time in case there are
+#		any cross-references or labels defined.
+
+# TODO: add something for Tables of Contents
+
+%.pdf : %.tex
+	$(TEX) $<
+	@if grep -s -e '\citation' -e '\bibdata' -e '\bibstyle' -e '\@citedef' $(basename $<).aux; then \
+	echo "*************************************"; \
+	$(BIBTEX) $(basename $<) ; \
+	echo "*************************************"; \
+	$(TEX) $< ; \
+	echo "*************************************"; \
+	$(TEX) $< ; \
+	elif [ -f $(basename $<).aux ]; then \
+	echo "*************************************"; \
+	$(TEX) $< ; \
+	fi
+
+clean :
+	rm -f *.log *.aux *.out *.dvi *.bbl *.blg
